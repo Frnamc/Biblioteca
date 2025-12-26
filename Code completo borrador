@@ -1,0 +1,251 @@
+#include <iostream>
+#include <vector>
+#include <string>
+#include <fstream>
+#include <cstdio>
+
+using namespace std;
+
+/* =================================================
+   =============== PERSONA 1 (LOGIN) ================
+   ================================================= */
+
+struct Usuario {
+    string nombre;
+    string contrasena;
+};
+
+bool cargarUsuarios(vector<Usuario> &lista, const string &rutaArchivo) {
+    ifstream archivo(rutaArchivo.c_str());
+    if (!archivo.is_open()) return false;
+
+    lista.clear();
+    Usuario temp;
+    while (archivo >> temp.nombre >> temp.contrasena) {
+        lista.push_back(temp);
+    }
+    archivo.close();
+    return true;
+}
+
+bool guardarUsuarios(const vector<Usuario> &lista, const string &rutaArchivo) {
+    ofstream archivo(rutaArchivo.c_str());
+    if (!archivo.is_open()) return false;
+
+    for (size_t i = 0; i < lista.size(); i++) {
+        archivo << lista[i].nombre << " " << lista[i].contrasena << endl;
+    }
+    archivo.close();
+    return true;
+}
+
+bool registrarUsuario(vector<Usuario> &lista, const Usuario &u, const string &rutaArchivo) {
+    lista.push_back(u);
+    return guardarUsuarios(lista, rutaArchivo);
+}
+
+bool validarLogin(const vector<Usuario> &lista, const string &nombre, const string &pass) {
+    for (size_t i = 0; i < lista.size(); i++) {
+        if (lista[i].nombre == nombre && lista[i].contrasena == pass) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/* =================================================
+   ============== PERSONA 2 (CRUD) ==================
+   ================================================= */
+
+struct Libro {
+    int id;
+    char titulo[50];
+    char autor[50];
+    int anio;
+};
+
+bool existeID(int idBuscar) {
+    Libro l;
+    ifstream archivo("libros.txt");
+    if (!archivo) return false;
+
+    while (archivo >> l.id) {
+        archivo.ignore();
+        archivo.getline(l.titulo, 50, '|');
+        archivo.getline(l.autor, 50, '|');
+        archivo >> l.anio;
+
+        if (l.id == idBuscar) {
+            archivo.close();
+            return true;
+        }
+    }
+    archivo.close();
+    return false;
+}
+
+void crearLibro() {
+    Libro l;
+    ofstream archivo("libros.txt", ios::app);
+    if (!archivo) return;
+
+    cout << "ID: ";
+    cin >> l.id;
+    cin.ignore();
+
+    if (existeID(l.id)) {
+        cout << "ID duplicado\n";
+        archivo.close();
+        return;
+    }
+
+    cout << "Titulo: ";
+    cin.getline(l.titulo, 50);
+    cout << "Autor: ";
+    cin.getline(l.autor, 50);
+    cout << "Anio: ";
+    cin >> l.anio;
+
+    archivo << l.id << "|" << l.titulo << "|" << l.autor << "|" << l.anio << endl;
+    archivo.close();
+}
+
+void mostrarLibros() {
+    Libro l;
+    ifstream archivo("libros.txt");
+    if (!archivo) return;
+
+    while (archivo >> l.id) {
+        archivo.ignore();
+        archivo.getline(l.titulo, 50, '|');
+        archivo.getline(l.autor, 50, '|');
+        archivo >> l.anio;
+
+        cout << "\nID: " << l.id
+             << "\nTitulo: " << l.titulo
+             << "\nAutor: " << l.autor
+             << "\nAnio: " << l.anio
+             << "\n-------------------------\n";
+    }
+    archivo.close();
+}
+
+void modificarLibro() {
+    int idBuscar;
+    Libro l;
+    bool encontrado = false;
+
+    ifstream archivo("libros.txt");
+    ofstream temp("temp.txt");
+    if (!archivo || !temp) return;
+
+    cout << "ID a modificar: ";
+    cin >> idBuscar;
+    cin.ignore();
+
+    while (archivo >> l.id) {
+        archivo.ignore();
+        archivo.getline(l.titulo, 50, '|');
+        archivo.getline(l.autor, 50, '|');
+        archivo >> l.anio;
+
+        if (l.id == idBuscar) {
+            cout << "Nuevo titulo: ";
+            cin.getline(l.titulo, 50);
+            cout << "Nuevo autor: ";
+            cin.getline(l.autor, 50);
+            cout << "Nuevo anio: ";
+            cin >> l.anio;
+            cin.ignore();
+            encontrado = true;
+        }
+
+        temp << l.id << "|" << l.titulo << "|" << l.autor << "|" << l.anio << endl;
+    }
+
+    archivo.close();
+    temp.close();
+    remove("libros.txt");
+    rename("temp.txt", "libros.txt");
+
+    if (!encontrado)
+        cout << "Libro no encontrado\n";
+}
+
+void eliminarLibro() {
+    int idEliminar;
+    Libro l;
+    bool encontrado = false;
+
+    ifstream archivo("libros.txt");
+    ofstream temp("temp.txt");
+    if (!archivo || !temp) return;
+
+    cout << "ID a eliminar: ";
+    cin >> idEliminar;
+
+    while (archivo >> l.id) {
+        archivo.ignore();
+        archivo.getline(l.titulo, 50, '|');
+        archivo.getline(l.autor, 50, '|');
+        archivo >> l.anio;
+
+        if (l.id != idEliminar) {
+            temp << l.id << "|" << l.titulo << "|" << l.autor << "|" << l.anio << endl;
+        } else {
+            encontrado = true;
+        }
+    }
+
+    archivo.close();
+    temp.close();
+    remove("libros.txt");
+    rename("temp.txt", "libros.txt");
+
+    if (!encontrado)
+        cout << "Libro no encontrado\n";
+}
+
+/* =================================================
+   ============== PERSONA 3 (UNIÓN) =================
+   ================================================= */
+
+int main() {
+    vector<Usuario> usuarios;
+
+    cargarUsuarios(usuarios, "usuarios.txt");
+
+    string user, pass;
+    cout << "===== LOGIN =====\n";
+    cout << "Usuario: ";
+    cin >> user;
+    cout << "Contrasena: ";
+    cin >> pass;
+
+    if (!validarLogin(usuarios, user, pass)) {
+        cout << "Acceso denegado\n";
+        return 0;
+    }
+
+    int opcion;
+    do {
+        cout << "\n===== MENU LIBROS =====\n";
+        cout << "1. Agregar libro\n";
+        cout << "2. Mostrar libros\n";
+        cout << "3. Modificar libro\n";
+        cout << "4. Eliminar libro\n";
+        cout << "5. Salir\n";
+        cout << "Opcion: ";
+        cin >> opcion;
+
+        switch (opcion) {
+            case 1: crearLibro(); break;
+            case 2: mostrarLibros(); break;
+            case 3: modificarLibro(); break;
+            case 4: eliminarLibro(); break;
+        }
+
+    } while (opcion != 5);
+
+    return 0;
+}
