@@ -1,0 +1,278 @@
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <cctype>
+#include <cstdio>
+#include <locale.h>
+
+using namespace std;
+
+/* =================================================
+   =============== PERSONA 1 (LOGIN) ================
+   ================================================= */
+
+string USUARIO = "admin";
+string CONTRASENA = "1234";
+
+bool login() {
+    string u, c;
+    int intentos = 3;
+
+    while (intentos--) {
+        cout << "Usuario: ";
+        cin >> u;
+        cout << "Contrasena: ";
+        cin >> c;
+
+        if (u == USUARIO && c == CONTRASENA) {
+            cout << "Login exitoso\n";
+            return true;
+        } else {
+            cout << "Datos incorrectos. Intentos restantes: "
+                 << intentos << endl;
+        }
+    }
+    return false;
+}
+
+/* =================================================
+   ============== VALIDACIONES ======================
+   ================================================= */
+
+bool soloLetras(const string& texto) {
+    for (char c : texto) {
+        if (!isalpha((unsigned char)c) && c != ' ')
+            return false;
+    }
+    return true;
+}
+
+bool letrasNumerosEspacios(const string& texto) {
+    for (char c : texto) {
+        if (!isalnum((unsigned char)c) && c != ' ')
+            return false;
+    }
+    return true;
+}
+
+/* =================================================
+   ============== PERSONA 2 (CRUD) ==================
+   ================================================= */
+
+struct Libro {
+    int id;
+    string titulo;
+    string autor;
+    int año;
+};
+
+bool existeID(int id) {
+    Libro l;
+    ifstream archivo("libros.txt");
+    if (!archivo) return false;
+
+    while (archivo >> l.id) {
+        archivo.ignore();
+        getline(archivo, l.titulo, '|');
+        getline(archivo, l.autor, '|');
+        archivo >> l.año;
+        if (l.id == id) return true;
+    }
+    return false;
+}
+
+void cargarLibrosIniciales() {
+    ifstream archivo("libros.txt");
+    if (archivo.good() && archivo.peek() != ifstream::traits_type::eof()) {
+        archivo.close();
+        return;
+    }
+    archivo.close();
+
+    ofstream out("libros.txt");
+    out << "1|Cien Años de Soledad|Gabriel Garcia Marquez|1967\n";
+    out << "2|1984|George Orwell|1949\n";
+    out << "3|Don Quijote de la Mancha|Miguel de Cervantes|1605\n";
+    out << "4|La Odisea|Homero|1600\n";
+    out << "5|El Principito|Antoine de Saint Exupery|1943\n";
+    out.close();
+}
+
+void crearLibro() {
+    Libro l;
+    ofstream archivo("libros.txt", ios::app);
+
+    cout << "ID: ";
+    cin >> l.id;
+    cin.ignore();
+
+    if (existeID(l.id)) {
+        cout << "ID duplicado\n";
+        return;
+    }
+
+    do {
+        cout << "Titulo (letras y numeros): ";
+        getline(cin, l.titulo);
+    } while (!letrasNumerosEspacios(l.titulo));
+
+    do {
+        cout << "Autor (solo letras): ";
+        getline(cin, l.autor);
+    } while (!soloLetras(l.autor));
+
+    do {
+        cout << "Año (>=1500): ";
+        cin >> l.año;
+        cin.clear();
+        cin.ignore(1000, '\n');
+    } while (l.año < 1500);
+
+    archivo << l.id << "|" << l.titulo << "|" << l.autor << "|" << l.año << endl;
+    archivo.close();
+
+    cout << "Libro agregado correctamente\n";
+}
+
+void mostrarLibros() {
+    Libro l;
+    ifstream archivo("libros.txt");
+
+    if (!archivo) {
+        cout << "No hay libros registrados\n";
+        return;
+    }
+
+    while (archivo >> l.id) {
+        archivo.ignore();
+        getline(archivo, l.titulo, '|');
+        getline(archivo, l.autor, '|');
+        archivo >> l.año;
+
+        cout << "\nID: " << l.id
+             << "\nTitulo: " << l.titulo
+             << "\nAutor: " << l.autor
+             << "\nAño: " << l.año
+             << "\n------------------------";
+    }
+}
+
+void modificarLibro() {
+    int id;
+    Libro l;
+    bool encontrado = false;
+
+    ifstream archivo("libros.txt");
+    ofstream temp("temp.txt");
+
+    cout << "ID a modificar: ";
+    cin >> id;
+    cin.ignore();
+
+    while (archivo >> l.id) {
+        archivo.ignore();
+        getline(archivo, l.titulo, '|');
+        getline(archivo, l.autor, '|');
+        archivo >> l.año;
+        cin.ignore();
+
+        if (l.id == id) {
+            do {
+                cout << "Nuevo titulo: ";
+                getline(cin, l.titulo);
+            } while (!letrasNumerosEspacios(l.titulo));
+
+            do {
+                cout << "Nuevo autor: ";
+                getline(cin, l.autor);
+            } while (!soloLetras(l.autor));
+
+            do {
+                cout << "Nuevo año: ";
+                cin >> l.año;
+                cin.clear();
+                cin.ignore(1000, '\n');
+            } while (l.año < 1500);
+
+            encontrado = true;
+        }
+
+        temp << l.id << "|" << l.titulo << "|" << l.autor << "|" << l.año << endl;
+    }
+
+    archivo.close();
+    temp.close();
+    remove("libros.txt");
+    rename("temp.txt", "libros.txt");
+
+    if (encontrado) cout << "Libro modificado\n";
+    else cout << "Libro no encontrado\n";
+}
+
+void eliminarLibro() {
+    int id;
+    Libro l;
+    bool encontrado = false;
+
+    ifstream archivo("libros.txt");
+    ofstream temp("temp.txt");
+
+    cout << "ID a eliminar: ";
+    cin >> id;
+
+    while (archivo >> l.id) {
+        archivo.ignore();
+        getline(archivo, l.titulo, '|');
+        getline(archivo, l.autor, '|');
+        archivo >> l.año;
+
+        if (l.id != id)
+            temp << l.id << "|" << l.titulo << "|" << l.autor << "|" << l.año << endl;
+        else
+            encontrado = true;
+    }
+
+    archivo.close();
+    temp.close();
+    remove("libros.txt");
+    rename("temp.txt", "libros.txt");
+
+    if (encontrado) cout << "Libro eliminado\n";
+    else cout << "Libro no encontrado\n";
+}
+
+/* =================================================
+   ============== PERSONA 3 (MENU) ==================
+   ================================================= */
+
+int main() {
+    setlocale(LC_ALL, "Spanish");
+
+    cargarLibrosIniciales();
+
+    if (!login()) {
+        cout << "Programa cerrado\n";
+        return 0;
+    }
+
+    int op;
+    do {
+        cout << "\n--- MENU BIBLIOTECA ---\n";
+        cout << "1. Agregar libro\n";
+        cout << "2. Mostrar libros\n";
+        cout << "3. Modificar libro\n";
+        cout << "4. Eliminar libro\n";
+        cout << "5. Salir\n";
+        cout << "Opcion: ";
+        cin >> op;
+
+        switch (op) {
+            case 1: crearLibro(); break;
+            case 2: mostrarLibros(); break;
+            case 3: modificarLibro(); break;
+            case 4: eliminarLibro(); break;
+        }
+    } while (op != 5);
+
+    return 0;
+}
