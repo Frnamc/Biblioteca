@@ -1,0 +1,50 @@
+
+void MainWindow::on_btnEliminar_clicked()
+{
+    bool ok;
+    int idEli = QInputDialog::getInt(this, "Eliminar", "ID del libro:", 1, 1, 999, 1, &ok);
+    if (!ok) return;
+
+    ifstream archivo("libros.txt");
+    string linea;
+    string contenido = "";
+    bool borrado = false;
+
+    while (getline(archivo, linea)) {
+        stringstream ss(linea);
+        int idAct;
+        ss >> idAct;
+
+        if (idAct != idEli) {
+            contenido += linea + "\n";
+        } else {
+            borrado = true;
+        }
+    }
+    archivo.close();
+
+    if (borrado) {
+        ofstream out("libros.txt");
+        out << contenido;
+        QMessageBox::information(this, "Éxito", "Libro eliminado.");
+    } else {
+        QMessageBox::warning(this, "Error", "ID no encontrado.");
+    }
+}
+void MainWindow::on_btnSalir_2_clicked()
+{
+    QMessageBox ventana;
+    ventana.setWindowTitle("Salir");
+    ventana.setText("¿Estás seguro de que quieres cerrar la biblioteca?");
+    ventana.setIcon(QMessageBox::Question);
+
+
+    QPushButton *si = ventana.addButton("Sí, salir", QMessageBox::YesRole);
+    ventana.addButton("No, cancelar", QMessageBox::NoRole);
+
+    ventana.exec();
+
+    if (ventana.clickedButton() == si) {
+        this->close();
+    }
+}
