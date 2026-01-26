@@ -1,0 +1,100 @@
+QMainWindow, QDialog {
+    background-color: #FFF5F7;
+}
+
+#centralwidget {
+    border-image: url(:/1.png) 0 0 0 0 stretch stretch;
+}
+
+#loginCard, #menuCard {
+    background-color: rgba(255, 255, 255, 0.9);
+    border: 3px solid #D4AF37;
+    border-radius: 20px;
+}
+
+QPushButton {
+    background-color: white;
+    color: #D4AF37;
+    border: 2px solid #FFC1CC;
+    border-radius: 12px;
+    padding: 10px;
+    font-size: 14px;
+    font-weight: bold;
+    min-height: 30px;
+}
+
+QPushButton:hover {
+    background-color: #FFC1CC;
+    color: white;
+    border: 2px solid #D4AF37;
+}
+
+#btnLogin {
+    background-color: #FFC1CC;
+    color: white;
+    border: 2px solid #D4AF37;
+}
+
+#btnSalirLogin, #btnSalir_2 {
+    color: #D81B60;
+    border: 2px solid #D81B60;
+}
+
+QLineEdit {
+    background-color: white;
+    border: 2px solid #FFC1CC;
+    border-radius: 10px;
+    padding: 8px;
+    color: #5D4037;
+}
+
+
+QInputDialog, QMessageBox, QDialog {
+    background-color: #FFF5F7;
+}
+
+QDialog QLabel {
+    color: #5D4037;
+    font-weight: bold;
+    font-size: 14px;
+    margin-bottom: 5px;
+}
+
+QDialog QPushButton {
+    background-color: white;
+    color: #D4AF37;
+    border: 2px solid #FFC1CC;
+    border-radius: 10px;
+    padding: 8px 15px;
+    min-width: 80px;
+    font-weight: bold;
+}
+
+QDialog QPushButton:hover {
+    background-color: #FFC1CC;
+    color: white;
+}
+
+
+QDialog QLineEdit {
+    background-color: white;
+    border: 2px solid #D4AF37;
+    border-radius: 8px;
+    padding: 5px;
+    color: #5D4037;
+    selection-background-color: #FFC1CC;
+}
+
+QComboBox {
+    background-color: white;
+    border: 2px solid #FFC1CC;
+    border-radius: 8px;
+    padding: 5px;
+    color: #5D4037;
+}
+
+QComboBox QAbstractItemView {
+    background-color: white;
+    selection-background-color: #FFC1CC;
+    color: #5D4037;
+}
